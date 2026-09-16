@@ -32,6 +32,14 @@ type Server struct {
 	// App-specific handlers pass this to Jobs.Create.
 	Ctx context.Context
 
+	// SkipReveal/SkipOpen opt out of the default "POST /api/reveal" /
+	// "POST /api/open" registration in Start, for the rare applet that
+	// needs its own (e.g. one that validates the path against a
+	// server-side allowlist before revealing/opening it) — set before
+	// calling Start, then register the replacement from mount.
+	SkipReveal bool
+	SkipOpen   bool
+
 	idleTimeout  time.Duration
 	lastActivity atomic.Int64
 }
@@ -64,8 +72,12 @@ func (s *Server) Start(port int, static fs.FS, mount func(*http.ServeMux)) (stri
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/jobs/{id}/events", s.handleJobEvents)
 	mux.HandleFunc("POST /api/jobs/{id}/cancel", s.handleJobCancel)
-	mux.HandleFunc("POST /api/reveal", s.handleReveal)
-	mux.HandleFunc("POST /api/open", s.handleOpen)
+	if !s.SkipReveal {
+		mux.HandleFunc("POST /api/reveal", s.handleReveal)
+	}
+	if !s.SkipOpen {
+		mux.HandleFunc("POST /api/open", s.handleOpen)
+	}
 	if mount != nil {
 		mount(mux)
 	}
