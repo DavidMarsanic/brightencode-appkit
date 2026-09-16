@@ -40,6 +40,13 @@ type Server struct {
 	SkipReveal bool
 	SkipOpen   bool
 
+	// ExtraBusy, if set, is consulted by the idle-shutdown watchdog
+	// alongside Jobs.HasActive() — for an applet with a long-lived
+	// resource that isn't a Job (e.g. an open local-network share
+	// session) but should equally hold off the idle exit. Set before
+	// calling Start.
+	ExtraBusy func() bool
+
 	idleTimeout  time.Duration
 	lastActivity atomic.Int64
 }
@@ -115,7 +122,8 @@ func (s *Server) watchIdle() {
 	defer ticker.Stop()
 	for range ticker.C {
 		idleFor := time.Now().Unix() - s.lastActivity.Load()
-		if idleFor > int64(s.idleTimeout.Seconds()) && !s.Jobs.HasActive() {
+		busy := s.Jobs.HasActive() || (s.ExtraBusy != nil && s.ExtraBusy())
+		if idleFor > int64(s.idleTimeout.Seconds()) && !busy {
 			os.Exit(0)
 		}
 	}
