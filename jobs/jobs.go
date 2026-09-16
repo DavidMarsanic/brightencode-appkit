@@ -15,18 +15,21 @@ import (
 // Event is one step of a job's progress. The field set is the union of
 // what individual applets have needed (a plain conversion only sets
 // Stage/Percent/Message; an archive tool adds IsDir; a download adds
-// Speed/ETA) — every field besides Stage is optional, so an applet that
-// doesn't use a given field just never sets it.
+// Speed/ETA; a transcriber adds SrtFilename) — every field besides Stage
+// is optional, so an applet that doesn't use a given field just never
+// sets it. Add to this list as a new migration needs one more; don't
+// pre-add fields nothing uses yet.
 type Event struct {
-	Stage    string  `json:"stage"` // e.g. processing, done, error, canceled — app-defined beyond done/error/canceled
-	Percent  float64 `json:"percent,omitempty"`
-	Speed    string  `json:"speed,omitempty"`
-	ETA      string  `json:"eta,omitempty"`
-	Message  string  `json:"message,omitempty"`
-	Path     string  `json:"path,omitempty"`
-	Filename string  `json:"filename,omitempty"`
-	IsDir    bool    `json:"isDir,omitempty"`
-	Code     string  `json:"code,omitempty"`
+	Stage       string  `json:"stage"` // e.g. processing, done, error, canceled — app-defined beyond done/error/canceled
+	Percent     float64 `json:"percent,omitempty"`
+	Speed       string  `json:"speed,omitempty"`
+	ETA         string  `json:"eta,omitempty"`
+	Message     string  `json:"message,omitempty"`
+	Path        string  `json:"path,omitempty"`
+	Filename    string  `json:"filename,omitempty"`
+	SrtFilename string  `json:"srtFilename,omitempty"`
+	IsDir       bool    `json:"isDir,omitempty"`
+	Code        string  `json:"code,omitempty"`
 }
 
 // Job is one running or finished operation.
