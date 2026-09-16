@@ -26,3 +26,15 @@ func ResolveDownloadsDir(override string) (string, error) {
 	}
 	return dir, nil
 }
+
+// ScratchDir returns a fresh, empty directory under the OS temp dir for
+// one job's uploaded input, namespaced by appName and jobID — never the
+// user's real Downloads/home, and always cleaned up by the caller once
+// the job ends.
+func ScratchDir(appName, jobID string) (string, error) {
+	dir := filepath.Join(os.TempDir(), appName, jobID)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", fmt.Errorf("creating scratch directory: %w", err)
+	}
+	return dir, nil
+}
